@@ -1,17 +1,15 @@
-# Carbon Security User Store JDBC
+# Carbon Security Login Module - JWT
 
-Carbon Security User Store JDBC provides a JDBC based connector for the [Carbon Security](https://github.com/wso2/carbon-security.git).
-This connector provides read only operations for the Credential Store and Identity Store, and complete CRUD operations for the
-Authorization Store.
+Carbon Security Login Module - JWT provides a JWT login module for the [Carbon Security](https://github.com/wso2/carbon-security.git).
 
 ## Download
 
 Use Maven snippet:
 ````xml
 <dependency>
-    <groupId>org.wso2.carbon.security.userstore</groupId>
-    <artifactId>org.wso2.carbon.security.userstore.jdbc</artifactId>
-    <version>${carbon.security.version}</version>
+    <groupId>org.wso2.carbon.security.caas.module</groupId>
+    <artifactId>org.wso2.carbon.security.caas.module.jwt</artifactId>
+    <version>${org.wso2.carbon.security.caas.module.jwt.version}</version>
 </dependency>
 ````
 
@@ -52,10 +50,10 @@ Use following Maven repository for released stable versions of Carbon Security.
 ````
 ## Building From Source
 
-Clone this repository first (`git clone https://github.com/wso2-extensions/carbon-security-user-store-jdbc.git`) and use Maven install to build
+Clone this repository first (`git clone https://github.com/wso2-extensions/carbon-security-login-module-jwt.git`) and use Maven install to build
 `mvn clean install`.
 
-## Contributing to Carbon Security User Store Projects
+## Contributing to Carbon Security Projects
 
 Pull requests are highly encouraged and we recommend you to create a [JIRA](https://wso2.org/jira/browse/CSECURITY) to discuss the issue or feature that you
  are contributing to.
