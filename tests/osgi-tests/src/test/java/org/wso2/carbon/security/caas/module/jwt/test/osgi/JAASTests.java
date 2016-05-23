@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.kernel.context.PrivilegedCarbonContext;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 import org.wso2.carbon.messaging.CarbonMessage;
+import org.wso2.carbon.messaging.DefaultCarbonMessage;
 import org.wso2.carbon.security.caas.api.ProxyCallbackHandler;
 import org.wso2.carbon.security.caas.module.jwt.test.osgi.util.SecurityOSGiTestUtils;
 
@@ -74,7 +75,7 @@ public class JAASTests {
                             "PJ9j-vrYwep9nEAHu-OgxEBGU9-e1UXT9FTQ9ZJnkLgO4DypF_kAW2xbA6SOhwSpT_BQHcXJta_yCrPcnxH09vtk" +
                             "HN35zl9UzS7d3CCLaKrDNWMWnf6Z9XcbDJjOvakVhbf7UFPI0ec0fNx0RbbQ";
 
-        CarbonMessage carbonMessage = new CarbonMessageImpl();
+        CarbonMessage carbonMessage = new DefaultCarbonMessage();
         carbonMessage.setHeader("Authorization", "Bearer " + encodedJWT);
 
         ProxyCallbackHandler callbackHandler = new ProxyCallbackHandler(carbonMessage);
@@ -94,7 +95,7 @@ public class JAASTests {
                             "fIJ5rAAQj9z9d8WNdJw1D_qQKDFbYztuorXl45iUIgjkQA1gIqgVUDd8ERuhpegiELevGi-_W0cQAawy2GRV5A2k" +
                             "-y4EhQ-H065sJol4Npaw7dCTBYEbXzHYrxfcSkjXb92i8m-7mMK6pMJs5lo";
 
-        CarbonMessage carbonMessage = new CarbonMessageImpl();
+        CarbonMessage carbonMessage = new DefaultCarbonMessage();
         carbonMessage.setHeader("Authorization", "Bearer " + encodedJWT);
 
         ProxyCallbackHandler callbackHandler = new ProxyCallbackHandler(carbonMessage);
