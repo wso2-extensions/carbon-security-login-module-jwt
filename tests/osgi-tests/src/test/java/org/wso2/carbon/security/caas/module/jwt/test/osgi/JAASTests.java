@@ -109,4 +109,29 @@ public class JAASTests {
         }
 
     }
+
+    @Test
+    public void testExpiredJWTLogin() {
+        PrivilegedCarbonContext.destroyCurrentContext();
+
+        //Expired JWT for username: admin.
+        String encodedJWT = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTQzMjkxNTA1MH0.k0y0nP0yvZSVF2P5HAYOdEv" +
+                            "QvimqHUODkHT-XZisrTZAOTbJJzr71JqKcIF_uhb-g53dcKF4DuGGUvBTPFB1bs-NM8oS0MoOxdBqnce8G0axG7i" +
+                            "5AzKIHN_S23Qj29YIPyXeITYF0Bpjl9nBjsYXw5o_v5IzF1q6jCbLptW7nW4";
+
+        CarbonMessage carbonMessage = new DefaultCarbonMessage();
+        carbonMessage.setHeader("Authorization", "Bearer " + encodedJWT);
+
+        ProxyCallbackHandler callbackHandler = new ProxyCallbackHandler(carbonMessage);
+        LoginContext loginContext;
+        try {
+            loginContext = new LoginContext("CarbonSecurityJWTConfig", callbackHandler);
+            loginContext.login();
+            Assert.assertTrue(false, "Login succeeded for an expired Signed JWT.");
+        } catch (LoginException e) {
+            Assert.assertTrue(true);
+        }
+
+    }
+
 }
