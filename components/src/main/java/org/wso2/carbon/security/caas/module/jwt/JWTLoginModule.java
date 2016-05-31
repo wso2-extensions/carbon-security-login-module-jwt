@@ -127,15 +127,16 @@ public class JWTLoginModule implements LoginModule {
 
         signedJWT = jwtCarbonCallback.getContent();
 
-        // verify the signature and stop proceeding if it fails
+
+        // check the expiration of the Signed JWT
+        if (!checkIsJwtExpired(signedJWT)) {
+            succeeded = true;
+        }
+
+        //  Verify the signature of the Signed JWT
         if (!verifySignature(signedJWT)) {
             succeeded = false;
             return succeeded;
-        }
-
-        // check the expiration of the signed JWT
-        if (!checkIsJwtExpired(signedJWT)) {
-            succeeded = true;
         }
 
         //TODO Add Audit logs
@@ -164,8 +165,7 @@ public class JWTLoginModule implements LoginModule {
                     subject.getPrincipals().add(carbonPrincipal);
                 }
 
-                PrivilegedCarbonContext privilegedCarbonContext =
-                        (PrivilegedCarbonContext) PrivilegedCarbonContext.getCurrentContext();
+                PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getCurrentContext();
                 privilegedCarbonContext.setUserPrincipal(carbonPrincipal);
 
                 commitSucceeded = true;
