@@ -117,6 +117,7 @@ public class JWTLoginModule implements LoginModule {
 
         CarbonCallback<SignedJWT> jwtCarbonCallback = new CarbonCallback<>(CarbonSecurityConstants.JWT_LOGIN_MODULE);
         Callback[] callbacks = {jwtCarbonCallback};
+        succeeded = false;
 
         try {
             callbackHandler.handle(callbacks);
@@ -139,22 +140,21 @@ public class JWTLoginModule implements LoginModule {
         String subject = claimsSet.getSubject();
         if (subject == null || subject.isEmpty()) {
             log.error("Mandatory subject claim not found in the Signed JWT");
-            succeeded = false;
             return succeeded;
         }
 
         // check the expiration of the Signed JWT
         if (checkIsJwtExpired(claimsSet)) {
-            succeeded = false;
             return succeeded;
         }
 
         //  Verify the signature of the Signed JWT
         if (!verifySignature(signedJWT)) {
-            succeeded = false;
+            return succeeded;
         }
 
         //TODO Add Audit logs
+        succeeded = true;
         return succeeded;
     }
 
