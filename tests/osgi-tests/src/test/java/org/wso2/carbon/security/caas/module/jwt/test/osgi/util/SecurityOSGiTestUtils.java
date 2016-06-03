@@ -74,21 +74,25 @@ public class SecurityOSGiTestUtils {
                                       .artifactId("commons-io")
                                       .version("2.4.0.wso2v1"));
         defaultOptionList.add(mavenBundle()
-                               .groupId("org.wso2.carbon")
-                               .artifactId("org.wso2.carbon.core")
-                               .versionAsInProject());
+                                      .groupId("org.wso2.carbon")
+                                      .artifactId("org.wso2.carbon.core")
+                                      .versionAsInProject());
         defaultOptionList.add(mavenBundle()
-                               .groupId("net.minidev.wso2")
-                               .artifactId("json-smart")
-                               .versionAsInProject());
+                                      .groupId("net.minidev.wso2")
+                                      .artifactId("json-smart")
+                                      .versionAsInProject());
         defaultOptionList.add(mavenBundle()
-                               .groupId("org.wso2.orbit.com.nimbusds")
-                               .artifactId("nimbus-jose-jwt")
-                               .versionAsInProject());
+                                      .groupId("org.wso2.orbit.com.nimbusds")
+                                      .artifactId("nimbus-jose-jwt")
+                                      .versionAsInProject());
         defaultOptionList.add(mavenBundle()
-                               .groupId("net.minidev")
-                               .artifactId("asm")
-                               .versionAsInProject());
+                                      .groupId("net.minidev")
+                                      .artifactId("asm")
+                                      .versionAsInProject());
+        defaultOptionList.add(mavenBundle()
+                                      .groupId("org.wso2.carbon.caching")
+                                      .artifactId("org.wso2.carbon.caching")
+                                      .versionAsInProject());
 
         CarbonSysPropConfiguration sysPropConfiguration = new CarbonSysPropConfiguration();
         sysPropConfiguration.setCarbonHome(getCarbonHome());
