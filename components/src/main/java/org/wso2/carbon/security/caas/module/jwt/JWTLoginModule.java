@@ -98,7 +98,7 @@ public class JWTLoginModule implements LoginModule {
         this.options = options;
 
         if (options != null && options.containsKey(OPT_TRUSTSTORE_PATH) && options.containsKey(OPT_TRUSTSTORE_PW)
-            && options.containsKey(OPT_IDP_CERT_ALIAS)) {
+                && options.containsKey(OPT_IDP_CERT_ALIAS)) {
             trustStorePath = (String) options.get(OPT_TRUSTSTORE_PATH);
             if (!Paths.get(trustStorePath).isAbsolute()) {
                 trustStorePath = getAbsolutePath(trustStorePath).toString();
@@ -117,6 +117,7 @@ public class JWTLoginModule implements LoginModule {
 
         CarbonCallback<SignedJWT> jwtCarbonCallback = new CarbonCallback<>(CarbonSecurityConstants.JWT_LOGIN_MODULE);
         Callback[] callbacks = {jwtCarbonCallback};
+        succeeded = false;
 
         try {
             callbackHandler.handle(callbacks);
@@ -126,12 +127,34 @@ public class JWTLoginModule implements LoginModule {
         }
 
         signedJWT = jwtCarbonCallback.getContent();
-        if (verifySignature(signedJWT)) {
-            succeeded = true;
-        } else {
-            succeeded = false;
+
+        ReadOnlyJWTClaimsSet claimsSet;
+        try {
+            claimsSet = signedJWT.getJWTClaimsSet();
+        } catch (ParseException e) {
+            log.error("Error parsing the Signed JWT", e);
+            throw new LoginException("Error when parsing the Signed JWT");
         }
+
+        // Check for mandatory subject claim
+        String subject = claimsSet.getSubject();
+        if (subject == null || subject.isEmpty()) {
+            log.error("Mandatory subject claim not found in the Signed JWT");
+            return succeeded;
+        }
+
+        // check the expiration of the Signed JWT
+        if (checkIsJwtExpired(claimsSet)) {
+            return succeeded;
+        }
+
+        //  Verify the signature of the Signed JWT
+        if (!verifySignature(signedJWT)) {
+            return succeeded;
+        }
+
         //TODO Add Audit logs
+        succeeded = true;
         return succeeded;
     }
 
@@ -157,8 +180,7 @@ public class JWTLoginModule implements LoginModule {
                     subject.getPrincipals().add(carbonPrincipal);
                 }
 
-                PrivilegedCarbonContext privilegedCarbonContext =
-                        (PrivilegedCarbonContext) PrivilegedCarbonContext.getCurrentContext();
+                PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getCurrentContext();
                 privilegedCarbonContext.setUserPrincipal(carbonPrincipal);
 
                 commitSucceeded = true;
@@ -206,22 +228,38 @@ public class JWTLoginModule implements LoginModule {
      */
     private boolean verifySignature(SignedJWT signedJWT) {
         try {
-
             if (signedJWT != null) {
-                if (new Date().before(signedJWT.getJWTClaimsSet().getExpirationTime())) {
                     JWSVerifier verifier =
                             new RSASSAVerifier((RSAPublicKey) getPublicKey(trustStorePath, trustStorePassword,
-                                                                           certificateAlias));
+                                    certificateAlias));
                     return signedJWT.verify(verifier);
-                } else {
-                    log.warn("Token has expired.");
-                }
             }
-        } catch (ParseException | IOException | KeyStoreException | CertificateException |
-                NoSuchAlgorithmException | UnrecoverableKeyException | JOSEException e) {
+        } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException |
+                UnrecoverableKeyException | JOSEException e) {
             log.error("Error occurred while JWT signature verification", e);
         }
         return false;
+    }
+
+
+    /**
+     * <p>Verifies whether a signed JWT has expired.
+     *
+     * @param readOnlyJWTClaimsSet readOnly claim set from the parse SignedJWT
+     * @return true if the Signed JWT has expired else false
+     */
+    private boolean checkIsJwtExpired(ReadOnlyJWTClaimsSet readOnlyJWTClaimsSet) {
+        boolean isJWTExpired = false;
+
+        if (signedJWT != null) {
+            Date expirationDate = readOnlyJWTClaimsSet.getExpirationTime();
+            if (new Date().after(expirationDate)) {
+                    isJWTExpired = true;
+                    log.warn("Signed JWT has expired.");
+            }
+        }
+
+        return isJWTExpired;
     }
 
     /**
@@ -240,7 +278,7 @@ public class JWTLoginModule implements LoginModule {
 
     private PublicKey getPublicKey(String keyStorePath, String keyStorePassword, String alias)
             throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException,
-                   UnrecoverableKeyException {
+            UnrecoverableKeyException {
 
         try (InputStream inputStream = new FileInputStream(keyStorePath)) {
 
