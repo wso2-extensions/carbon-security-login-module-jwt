@@ -127,16 +127,31 @@ public class JWTLoginModule implements LoginModule {
 
         signedJWT = jwtCarbonCallback.getContent();
 
+        ReadOnlyJWTClaimsSet claimsSet;
+        try {
+            claimsSet = signedJWT.getJWTClaimsSet();
+        } catch (ParseException e) {
+            log.error("Error parsing the Signed JWT", e);
+            throw new LoginException("Error when parsing the Signed JWT");
+        }
+
+        // Check for mandatory subject claim
+        String subject = claimsSet.getSubject();
+        if (subject == null || subject.isEmpty()) {
+            log.error("Mandatory subject claim not found in the Signed JWT");
+            succeeded = false;
+            return succeeded;
+        }
 
         // check the expiration of the Signed JWT
-        if (!checkIsJwtExpired(signedJWT)) {
-            succeeded = true;
+        if (checkIsJwtExpired(claimsSet)) {
+            succeeded = false;
+            return succeeded;
         }
 
         //  Verify the signature of the Signed JWT
         if (!verifySignature(signedJWT)) {
             succeeded = false;
-            return succeeded;
         }
 
         //TODO Add Audit logs
@@ -213,7 +228,6 @@ public class JWTLoginModule implements LoginModule {
      */
     private boolean verifySignature(SignedJWT signedJWT) {
         try {
-
             if (signedJWT != null) {
                     JWSVerifier verifier =
                             new RSASSAVerifier((RSAPublicKey) getPublicKey(trustStorePath, trustStorePassword,
@@ -231,23 +245,18 @@ public class JWTLoginModule implements LoginModule {
     /**
      * <p>Verifies whether a signed JWT has expired.
      *
-     * @param signedJWT Signed JWT which needs to be checked for expiration
+     * @param readOnlyJWTClaimsSet readOnly claim set from the parse SignedJWT
      * @return true if the Signed JWT has expired else false
      */
-    private boolean checkIsJwtExpired(SignedJWT signedJWT) {
+    private boolean checkIsJwtExpired(ReadOnlyJWTClaimsSet readOnlyJWTClaimsSet) {
         boolean isJWTExpired = false;
 
-        try {
-
-            if (signedJWT != null) {
-                Date expirationDate = signedJWT.getJWTClaimsSet().getExpirationTime();
-                if (new Date().after(expirationDate)) {
+        if (signedJWT != null) {
+            Date expirationDate = readOnlyJWTClaimsSet.getExpirationTime();
+            if (new Date().after(expirationDate)) {
                     isJWTExpired = true;
                     log.warn("Signed JWT has expired.");
-                }
             }
-        } catch (ParseException e) {
-            log.error("Error getting claims from the signed JWT", e);
         }
 
         return isJWTExpired;
