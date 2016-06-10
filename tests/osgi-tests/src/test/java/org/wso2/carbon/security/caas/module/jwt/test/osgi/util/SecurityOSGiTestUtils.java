@@ -52,19 +52,19 @@ public class SecurityOSGiTestUtils {
         defaultOptionList.add(mavenBundle()
                                       .groupId("org.wso2.carbon.messaging")
                                       .artifactId("org.wso2.carbon.messaging")
-                                      .version("1.0.2"));
+                                      .versionAsInProject());
         defaultOptionList.add(mavenBundle()
                                       .groupId("org.wso2.carbon.security.caas")
                                       .artifactId("org.wso2.carbon.security.caas.boot")
-                                      .version("1.0.0-SNAPSHOT").noStart());
+                                      .versionAsInProject().noStart());
         defaultOptionList.add(mavenBundle()
                                       .groupId("org.wso2.carbon.security.caas")
                                       .artifactId("org.wso2.carbon.security.caas")
-                                      .version("1.0.0-SNAPSHOT"));
+                                      .versionAsInProject());
         defaultOptionList.add(mavenBundle()
                                       .groupId("org.wso2.carbon.security.caas")
                                       .artifactId("org.wso2.carbon.security.caas.userstore.inmemory")
-                                      .version("1.0.0-SNAPSHOT"));
+                                      .versionAsInProject());
         defaultOptionList.add(mavenBundle()
                                       .groupId("org.wso2.carbon.security.caas.module")
                                       .artifactId("org.wso2.carbon.security.caas.module.jwt")
@@ -72,7 +72,7 @@ public class SecurityOSGiTestUtils {
         defaultOptionList.add(mavenBundle()
                                       .groupId("commons-io.wso2")
                                       .artifactId("commons-io")
-                                      .version("2.4.0.wso2v1"));
+                                      .versionAsInProject());
         defaultOptionList.add(mavenBundle()
                                       .groupId("org.wso2.carbon")
                                       .artifactId("org.wso2.carbon.core")
