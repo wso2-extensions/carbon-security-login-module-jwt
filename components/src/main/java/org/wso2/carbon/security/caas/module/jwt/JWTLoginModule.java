@@ -26,8 +26,14 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.kernel.context.PrivilegedCarbonContext;
 import org.wso2.carbon.security.caas.api.CarbonCallback;
 import org.wso2.carbon.security.caas.api.CarbonPrincipal;
+import org.wso2.carbon.security.caas.api.exception.CarbonSecurityAuthenticationException;
+import org.wso2.carbon.security.caas.api.exception.CarbonSecurityClientException;
+import org.wso2.carbon.security.caas.api.exception.CarbonSecurityLoginException;
+import org.wso2.carbon.security.caas.api.exception.CarbonSecurityLoginException.CarbonSecurityErrorMessages;
+import org.wso2.carbon.security.caas.api.exception.CarbonSecurityServerException;
 import org.wso2.carbon.security.caas.api.util.CarbonSecurityConstants;
 import org.wso2.carbon.security.caas.module.jwt.internal.JWTLoginModuleDataHolder;
+import org.wso2.carbon.security.caas.module.jwt.util.JWTLoginModuleConstants.JWTErrorMessages;
 import org.wso2.carbon.security.caas.user.core.bean.User;
 import org.wso2.carbon.security.caas.user.core.exception.IdentityStoreException;
 import org.wso2.carbon.security.caas.user.core.exception.UserNotFoundException;
@@ -121,9 +127,14 @@ public class JWTLoginModule implements LoginModule {
 
         try {
             callbackHandler.handle(callbacks);
-        } catch (IOException | UnsupportedCallbackException e) {
-            log.error("Error while handling callbacks.", e);
-            throw new LoginException("Error while handling callbacks.");
+        } catch (UnsupportedCallbackException e) {
+            throw new CarbonSecurityClientException(
+                    CarbonSecurityErrorMessages.UNSUPPORTED_CALLBACK_EXCEPTION.getCode(),
+                    CarbonSecurityErrorMessages.UNSUPPORTED_CALLBACK_EXCEPTION.getDescription(), e);
+        } catch (IOException e) {
+            throw new CarbonSecurityServerException(CarbonSecurityErrorMessages.CALLBACK_HANDLE_EXCEPTION.getCode(),
+                                                    CarbonSecurityErrorMessages.CALLBACK_HANDLE_EXCEPTION
+                                                            .getDescription(), e);
         }
 
         signedJWT = jwtCarbonCallback.getContent();
@@ -132,25 +143,27 @@ public class JWTLoginModule implements LoginModule {
         try {
             claimsSet = signedJWT.getJWTClaimsSet();
         } catch (ParseException e) {
-            log.error("Error parsing the Signed JWT", e);
-            throw new LoginException("Error when parsing the Signed JWT");
+            throw new CarbonSecurityAuthenticationException(JWTErrorMessages.JWT_PARSE_ERROR.getCode(),
+                                                    JWTErrorMessages.JWT_PARSE_ERROR.getDescription(), e);
         }
 
-        // Check for mandatory subject claim
+        // Check for mandatory subject claim.
         String subject = claimsSet.getSubject();
         if (subject == null || subject.isEmpty()) {
-            log.error("Mandatory subject claim not found in the Signed JWT");
-            return succeeded;
+            throw new CarbonSecurityAuthenticationException(JWTErrorMessages.SUBJECT_NOT_FOUND_ERROR.getCode(),
+                                                    JWTErrorMessages.SUBJECT_NOT_FOUND_ERROR.getDescription());
         }
 
-        // check the expiration of the Signed JWT
+        // Check the expiration of the Signed JWT.
         if (checkIsJwtExpired(claimsSet)) {
-            return succeeded;
+            throw new CarbonSecurityAuthenticationException(JWTErrorMessages.EXPIRED_JWT_ERROR.getCode(),
+                                                    JWTErrorMessages.EXPIRED_JWT_ERROR.getDescription());
         }
 
         //  Verify the signature of the Signed JWT
         if (!verifySignature(signedJWT)) {
-            return succeeded;
+            throw new CarbonSecurityAuthenticationException(JWTErrorMessages.SIGNATURE_VERIFICATION_ERROR.getCode(),
+                                                    JWTErrorMessages.SIGNATURE_VERIFICATION_ERROR.getDescription());
         }
 
         //TODO Add Audit logs
@@ -160,18 +173,25 @@ public class JWTLoginModule implements LoginModule {
 
     @Override
     public boolean commit() throws LoginException {
+
         if (!succeeded) {
             commitSucceeded = false;
         } else {
 
             try {
                 ReadOnlyJWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+                String username = claimsSet.getSubject();
                 User user;
                 try {
                     user = JWTLoginModuleDataHolder.getInstance().getCarbonRealmService().getIdentityStore()
-                            .getUser(claimsSet.getSubject());
-                } catch (IdentityStoreException | UserNotFoundException e) {
-                    throw new LoginException("User with name '" + claimsSet.getSubject() + "' is not available");
+                            .getUser(username);
+                } catch (IdentityStoreException e) {
+                    throw new CarbonSecurityServerException(JWTErrorMessages.IDENTITY_STORE_ERROR.getCode(),
+                                                            JWTErrorMessages.IDENTITY_STORE_ERROR.getDescription(), e);
+                } catch (UserNotFoundException e) {
+                    throw new CarbonSecurityServerException(JWTErrorMessages.USER_NOT_FOUND_ERROR.getCode(),
+                                                            String.format(JWTErrorMessages.USER_NOT_FOUND_ERROR
+                                                                                  .getDescription(), username), e);
                 }
 
                 carbonPrincipal = new CarbonPrincipal(user);
@@ -185,8 +205,8 @@ public class JWTLoginModule implements LoginModule {
 
                 commitSucceeded = true;
             } catch (ParseException e) {
-                log.error("Error while retrieving claims from JWT Token", e);
-                commitSucceeded = false;
+                throw new CarbonSecurityAuthenticationException(JWTErrorMessages.JWT_PARSE_ERROR.getCode(),
+                                                        JWTErrorMessages.JWT_PARSE_ERROR.getDescription(), e);
             }
         }
 
@@ -226,7 +246,7 @@ public class JWTLoginModule implements LoginModule {
      * @param signedJWT Signed JWT which needed to be verified.
      * @return true if the signature of the given JWT can is verified else false.
      */
-    private boolean verifySignature(SignedJWT signedJWT) {
+    private boolean verifySignature(SignedJWT signedJWT) throws CarbonSecurityLoginException {
         try {
             if (signedJWT != null) {
                     JWSVerifier verifier =
@@ -235,8 +255,14 @@ public class JWTLoginModule implements LoginModule {
                     return signedJWT.verify(verifier);
             }
         } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException |
-                UnrecoverableKeyException | JOSEException e) {
-            log.error("Error occurred while JWT signature verification", e);
+                UnrecoverableKeyException e) {
+            throw new CarbonSecurityServerException(JWTErrorMessages.PUBLIC_KEY_ERROR.getCode(),
+                                                    String.format(JWTErrorMessages.PUBLIC_KEY_ERROR.getDescription(),
+                                                                  certificateAlias), e);
+        } catch (JOSEException e) {
+            throw new CarbonSecurityServerException(JWTErrorMessages.SIGNATURE_VERIFICATION_ERROR.getCode(),
+                                                    JWTErrorMessages.SIGNATURE_VERIFICATION_ERROR.getDescription(),
+                                                    e);
         }
         return false;
     }
