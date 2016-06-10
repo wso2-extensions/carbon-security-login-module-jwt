@@ -30,7 +30,9 @@ import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.DefaultCarbonMessage;
 import org.wso2.carbon.security.caas.api.ProxyCallbackHandler;
+import org.wso2.carbon.security.caas.api.exception.CarbonSecurityAuthenticationException;
 import org.wso2.carbon.security.caas.module.jwt.test.osgi.util.SecurityOSGiTestUtils;
+import org.wso2.carbon.security.caas.module.jwt.util.JWTLoginModuleConstants;
 
 import java.nio.file.Paths;
 import java.util.List;
@@ -41,7 +43,7 @@ import javax.security.auth.login.LoginException;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 
 /**
- * JAAS OSGI Tests.
+ * JAAS JWT OSGI Tests.
  */
 
 @Listeners(PaxExam.class)
@@ -112,6 +114,7 @@ public class JAASTests {
 
     @Test
     public void testExpiredJWTLogin() {
+
         PrivilegedCarbonContext.destroyCurrentContext();
 
         //Expired JWT for username: admin.
@@ -128,8 +131,50 @@ public class JAASTests {
             loginContext = new LoginContext("CarbonSecurityJWTConfig", callbackHandler);
             loginContext.login();
             Assert.assertTrue(false, "Login succeeded for an expired Signed JWT.");
+        } catch (CarbonSecurityAuthenticationException e) {
+
+            if (e.getCode() == JWTLoginModuleConstants.JWTErrorMessages.EXPIRED_JWT_ERROR.getCode()) {
+                Assert.assertTrue(true);
+            } else {
+                Assert.assertTrue(false, "Expected code: " + JWTLoginModuleConstants.JWTErrorMessages
+                        .EXPIRED_JWT_ERROR.getCode() + ". Received code: " + e.getCode() + ".");
+            }
         } catch (LoginException e) {
-            Assert.assertTrue(true);
+            Assert.assertTrue(false, "Expected:" + CarbonSecurityAuthenticationException.class.getName() + ". " +
+                                     "Caught: " + e.getClass().getName() + ".");
+        }
+
+    }
+
+    @Test
+    public void testEmptySubject() {
+
+        PrivilegedCarbonContext.destroyCurrentContext();
+
+        //JWT with empty subject.
+        String encodedJWT = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIiLCJleHAiOjQxMDI0MjUwMDB9.UQ4Pj2_zCezLba2gwLY5wnIdlz7Ara" +
+                            "4nZ_PxrJEpv3p32CCZSpi8kkgDgonMDyndGkR_AeGoB7ewEgZ0EHZewhONkQEeotpXnxlJLzi07OqU4ZOddc8AWN" +
+                            "Ws5GC8VjqpEAcMEB1SPFsiG-2JudwEfUwM7s3ZtsseNdEYhkrnx7E";
+
+        CarbonMessage carbonMessage = new DefaultCarbonMessage();
+        carbonMessage.setHeader("Authorization", "Bearer " + encodedJWT);
+
+        ProxyCallbackHandler callbackHandler = new ProxyCallbackHandler(carbonMessage);
+        try {
+            LoginContext loginContext = new LoginContext("CarbonSecurityJWTConfig", callbackHandler);
+            loginContext.login();
+
+        } catch (CarbonSecurityAuthenticationException e) {
+
+            if (e.getCode() == JWTLoginModuleConstants.JWTErrorMessages.SUBJECT_NOT_FOUND_ERROR.getCode()) {
+                Assert.assertTrue(true);
+            } else {
+                Assert.assertTrue(false, "Expected error code: " + JWTLoginModuleConstants.JWTErrorMessages
+                        .SUBJECT_NOT_FOUND_ERROR.getCode() + ". Received error code: " + e.getCode() + ".");
+            }
+        } catch (LoginException e) {
+            Assert.assertTrue(false, "Expected:" + CarbonSecurityAuthenticationException.class.getName() + ". " +
+                                     "Caught: " + e.getClass().getName() + ".");
         }
 
     }
