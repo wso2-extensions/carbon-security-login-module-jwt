@@ -1,5 +1,12 @@
 # Carbon Security Login Module - JWT
+---
 
+|  Branch | Build Status |
+| :------------ |:-------------
+| master      | [![Build Status](https://wso2.org/jenkins/buildStatus/icon?job=carbon-security-login-module-jwt)](https://wso2.org/jenkins/job/carbon-security-login-module-jwt) |
+
+
+---
 Carbon Security Login Module - JWT provides a JWT login module for the [Carbon Security](https://github.com/wso2/carbon-security.git).
 
 ## Download
