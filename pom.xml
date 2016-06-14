@@ -32,10 +32,10 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <scm>
-        <url>https://github.com/wso2-extensions/carbon-security-user-store-jdbc.git</url>
-        <developerConnection>scm:git:https://github.com/wso2-extensions/carbon-security-user-store-jdbc.git
+        <url>https://github.com/wso2-extensions/carbon-security-login-module-jwt.git</url>
+        <developerConnection>scm:git:https://github.com/wso2-extensions/carbon-security-login-module-jwt.git
         </developerConnection>
-        <connection>scm:git:https://github.com/wso2-extensions/carbon-security-user-store-jdbc.git</connection>
+        <connection>scm:git:https://github.com/wso2-extensions/carbon-security-login-module-jwt.git</connection>
         <tag>HEAD</tag>
     </scm>
 
