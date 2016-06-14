@@ -28,14 +28,14 @@
     <artifactId>org.wso2.carbon.security.caas.module.jwt.parent</artifactId>
     <packaging>pom</packaging>
     <name>WSO2 Carbon Security CASS JWT Login Module - Parent</name>
-    <version>1.0.0-m1</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <scm>
         <url>https://github.com/wso2-extensions/carbon-security-login-module-jwt.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/carbon-security-login-module-jwt.git
         </developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/carbon-security-login-module-jwt.git</connection>
-        <tag>v1.0.0-m1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <modules>
@@ -253,7 +253,7 @@
     <properties>
         <carbon.security.caas.version>1.0.0-m2</carbon.security.caas.version>
         <org.wso2.carbon.messaging.version>1.0.3</org.wso2.carbon.messaging.version>
-        <org.wso2.carbon.security.caas.module.jwt.version>1.0.0-m1
+        <org.wso2.carbon.security.caas.module.jwt.version>1.0.0-SNAPSHOT
         </org.wso2.carbon.security.caas.module.jwt.version>
 
         <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
