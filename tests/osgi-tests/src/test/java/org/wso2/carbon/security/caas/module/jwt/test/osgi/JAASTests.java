@@ -31,6 +31,7 @@ import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.DefaultCarbonMessage;
 import org.wso2.carbon.security.caas.api.ProxyCallbackHandler;
 import org.wso2.carbon.security.caas.api.exception.CarbonSecurityAuthenticationException;
+import org.wso2.carbon.security.caas.api.exception.CarbonSecurityServerException;
 import org.wso2.carbon.security.caas.module.jwt.test.osgi.util.SecurityOSGiTestUtils;
 import org.wso2.carbon.security.caas.module.jwt.util.JWTLoginModuleConstants;
 
@@ -106,8 +107,16 @@ public class JAASTests {
             loginContext = new LoginContext("CarbonSecurityJWTConfig", callbackHandler);
             loginContext.login();
             Assert.assertTrue(false, "Login succeeded for a non-existing user.");
+        } catch (CarbonSecurityServerException e) {
+            if (e.getCode() == JWTLoginModuleConstants.JWTErrorMessages.USER_NOT_FOUND_ERROR.getCode()) {
+                Assert.assertTrue(true);
+            } else {
+                Assert.assertTrue(false, "Expected code: " + JWTLoginModuleConstants.JWTErrorMessages
+                        .USER_NOT_FOUND_ERROR.getCode() + ". Received code: " + e.getCode() + ".");
+            }
         } catch (LoginException e) {
-            Assert.assertTrue(true);
+            Assert.assertTrue(false, "Expected:" + CarbonSecurityServerException.class.getName() + ". " +
+                                     "Caught: " + e.getClass().getName() + ".");
         }
 
     }

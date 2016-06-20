@@ -24,12 +24,14 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>org.wso2.carbon.security.caas.module.jwt.test</artifactId>
+    <groupId>org.wso2.carbon.security.caas.module.jwt.tests</groupId>
+    <artifactId>carbon-security-caas-module-jwt-tests</artifactId>
     <packaging>pom</packaging>
     <name>WSO2 Carbon Security CAAS JWT Login Module - Tests</name>
     <url>http://wso2.com</url>
 
     <modules>
+        <module>distribution</module>
         <module>osgi-tests</module>
     </modules>
 
