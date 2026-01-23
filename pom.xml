@@ -262,7 +262,7 @@
 
         <!-- OSGI Test related -->
         <maven.wagon.ssh.version>2.1</maven.wagon.ssh.version>
-        <nimbus.version>2.26.1.wso2v3</nimbus.version>
+        <nimbus.version>10.3.0.wso2v1</nimbus.version>
         <json.smart.version>2.1.0.wso2v1</json.smart.version>
         <slf4j.api.version>1.7.12</slf4j.api.version>
         <rs-api.version>2.0</rs-api.version>
